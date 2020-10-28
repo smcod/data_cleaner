@@ -1,0 +1,22 @@
+version: 1
+
+root:
+  handlers: [console]
+  level:    DEBUG
+
+disable_existing_loggers: false
+
+loggers:
+  data_cleaner:
+    level: DEBUG
+
+handlers:
+  console:
+    class:     logging.StreamHandler
+    formatter: default
+    level:     DEBUG
+    stream:    ext://sys.stdout
+
+formatters:
+  default:
+    format:  "[%(levelname)-8s] %(asctime)s [%(process)-5s]%(threadName)s@'%(name)s.%(funcName)s:%(lineno)s': %(message)s"

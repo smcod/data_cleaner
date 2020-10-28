@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  data_cleaner:
+    container_name: data_cleaner
+    image: data_cleaner
+    restart: "no"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      LOGGING_LEVEL: DEBUG
+      TZ: Asia/Yekaterinburg
+    ports:
+      - "${SERVICES_BIND_IP:-0.0.0.0}:11000:8080"
+    networks:
+      - backend_nw
+
+networks:
+  backend_nw:
+    driver: bridge
