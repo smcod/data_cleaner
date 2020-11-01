@@ -2,6 +2,9 @@ import asyncio
 import logging
 from typing import Dict
 
+from src.exchange.client import Client
+from src.exchange.server import Server
+
 from src.config import configuration
 
 logger = logging.getLogger(__name__)
@@ -12,19 +15,28 @@ app_tasks: Dict = dict()
 
 async def on_startup() -> None:
     logger.info('Service started tasks')
-    await asyncio.sleep(5)
+    loop = asyncio.get_event_loop()
+
+    app_tasks['server'] = Server('localhost', 15555, loop=loop)
+    app_tasks['client'] = Client('localhost', 15555)
+
+    await app_tasks['server'].start()
+    await app_tasks['client'].start()
+
     logger.info('Service started successfully')
 
 
 async def on_cleanup() -> None:
     logger.info('Service stopped tasks')
-    await asyncio.sleep(5)
+
+    await app_tasks['client'].stop()
+    await app_tasks['server'].stop()
+
     logger.info('Service stopped successfully')
 
 
 def main():
     loop = asyncio.get_event_loop()
-
     loop.run_until_complete(on_startup())
 
     logger.info(f"======== Data cleaner is running (Press CTRL+C to quit) ========")
