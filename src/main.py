@@ -17,8 +17,9 @@ async def on_startup() -> None:
     logger.info('Service started tasks')
     loop = asyncio.get_event_loop()
 
-    app_tasks['server'] = Server('localhost', 15555, loop=loop)
-    app_tasks['client'] = Client('localhost', 15555)
+    # TODO: вынести эту херню в env
+    app_tasks['server'] = Server('127.0.0.1', 15555, loop=loop)
+    app_tasks['client'] = Client('127.0.0.1', 15555)
 
     await app_tasks['server'].start()
     await app_tasks['client'].start()
@@ -41,6 +42,7 @@ def main():
 
     logger.info(f"======== Data cleaner is running (Press CTRL+C to quit) ========")
     try:
+        app_tasks['client'].send_message(1, 'test_process')
         loop.run_forever()
     except KeyboardInterrupt:
         logger.info('KeyboardInterrupt')

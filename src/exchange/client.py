@@ -63,7 +63,7 @@ class Client(object):
         message['data'] = data
         message['target'] = (target_ip if target_ip else self._ip_addr, int(target_port) if target_port else self._port)
 
-        self._messages_to_send.add((message, Target(*message['target'])))
+        self._messages_to_send.add((json.dumps(message), Target(*message['target'])))
 
     @run_forever(failure_delay=5)
     async def _message_sender(self):

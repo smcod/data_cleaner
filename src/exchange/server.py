@@ -54,8 +54,8 @@ class Server(object):
         if server_task is not None:
             server_task.close()
             logger.info('Server kill')
-
-        await server_task.wait_closed()
+        if server_task is not None:
+            await server_task.wait_closed()
 
     async def stop(self):
         await self._stop_server()
@@ -104,7 +104,7 @@ class Server(object):
             raise ValueError(f'Такого хэндлера не существует: {callback}')
         return handler
 
-    def _get_full_message(self, reader: asyncio.StreamReader):
+    async def _get_full_message(self, reader: asyncio.StreamReader):
         acc_rec_data = b''
         while True:
             rec_data = await reader.read(self.chunk_size)
@@ -118,7 +118,7 @@ class Server(object):
         logger.info(f'Начинаем отправку сообщений на {client_addr}')
 
         try:
-            message = self._get_full_message(reader)
+            message = await self._get_full_message(reader)
             logger.debug(f"Received {message} from {client_addr}")
 
             dict_message = json.loads(message)
