@@ -1,2 +1,5 @@
-async def test_process(data):
-    return data + 2
+from typing import Any
+
+
+async def test_process(data: Any):
+    return f'your sending message: {data}'

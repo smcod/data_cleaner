@@ -1,2 +1,2 @@
-from .cleaner import *
+from .clean import *
 from .test_callback import *
