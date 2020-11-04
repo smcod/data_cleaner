@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Dict, Any, Union, Optional, NamedTuple, Tuple, Iterable
+from typing import Any, Union, Optional, NamedTuple, Tuple, Iterable
 
 from src.config import USER_AGENT
 from src.tasks import run_background_task, run_forever, cancel_and_stop_task
@@ -55,15 +55,24 @@ class Client(object):
             await cancel_and_stop_task(task)
             logger.info('Client остановлен')
 
-    def send_message(self, data: Any, callback: str,
+    def _create_message(self, data: Any, callback: str,
                      target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
         message = dict()
         message['user_agent'] = USER_AGENT
         message['callback'] = callback
         message['data'] = data
         message['target'] = (target_ip if target_ip else self._ip_addr, int(target_port) if target_port else self._port)
+        return message
 
+    def send_message_without_response(self, data: Any, callback: str,
+                     target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
+        message = self._create_message(data, callback, target_ip=target_ip, target_port=target_port)
         self._messages_to_send.add((json.dumps(message), Target(*message['target'])))
+
+    async def send_message_with_response(self, data: Any, callback: str,
+                     target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
+        message = self._create_message(data, callback, target_ip=target_ip, target_port=target_port)
+        return await self._send((json.dumps(message), Target(*message['target'])))
 
     @run_forever(failure_delay=5)
     async def _message_sender(self):
@@ -83,12 +92,7 @@ class Client(object):
         return messages
 
     async def _get_response(self, reader: asyncio.StreamReader):
-        acc_rec_data = b''
-        while True:
-            rec_data = await reader.read(self.chunk_size)
-            if not rec_data:
-                break
-            acc_rec_data += rec_data
+        acc_rec_data = await reader.read(self.chunk_size)
 
         if not acc_rec_data:
             logger.info('От сервера не было получено ответа')
@@ -108,14 +112,16 @@ class Client(object):
             for msg in messages:
                 writer.write(msg.encode('utf-8'))
 
+            logger.debug(f"Закончили отправлять сообщение: ({message})")
+
+            res_data = await self._get_response(reader)
+            logger.debug(f"Получаем в ответ: {res_data}")
+
+            logger.debug(f"Закрываем связь с сервером")
             await writer.drain()
             writer.close()
 
-            logger.debug(f"Закончили отправлять сообщение: ({message})")
-
-            await self._get_response(reader)
-
-            logger.debug(f"Закрываем связь с сервером")
+            return res_data
         except asyncio.CancelledError as exc:
             raise
 
@@ -131,7 +137,7 @@ if '__main__' == __name__:
     client = Client('localhost', 15555)
     try:
         loop.run_until_complete(client.start())
-        client.send_message(1, 'test_process')
+        client.send_message_without_response(1, 'test_process')
         loop.run_forever()
     except KeyboardInterrupt:
         loop.run_until_complete(client.stop())

@@ -105,12 +105,7 @@ class Server(object):
         return handler
 
     async def _get_full_message(self, reader: asyncio.StreamReader):
-        acc_rec_data = b''
-        while True:
-            rec_data = await reader.read(self.chunk_size)
-            if not rec_data:
-                break
-            acc_rec_data += rec_data
+        acc_rec_data = await reader.read(self.chunk_size)
         return acc_rec_data.decode('utf-8')
 
     async def client_task(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
