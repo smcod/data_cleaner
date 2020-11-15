@@ -5,7 +5,7 @@ from asyncio import AbstractEventLoop
 from functools import partial
 from typing import Dict, Any, Union, Optional
 
-from src import handlers
+from src.api import handlers
 from src.config import USER_AGENT
 from src.tasks import run_background_task, cancel_and_stop_task
 
