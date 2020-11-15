@@ -1,13 +1,7 @@
-import csv
 import logging.config
 import os
 
 import yaml
-
-with open(f'{os.path.dirname(__file__)}/data/all_need_items.csv', 'r') as _file:
-    reader = csv.reader(_file)
-    ITEM_IDS = reader.__next__()
-
 
 with open(f'{os.path.dirname(__file__)}/logging_config.yaml', 'r') as file:
     logging.config.dictConfig(yaml.safe_load(file))
@@ -17,7 +11,8 @@ USER_AGENT = f'Data Cleaner/{VERSION}'
 
 configuration = {
     'logging_level': os.environ.get('LOGGING_LEVEL', 'DEBUG').upper(),
-    'extract_interval': int(os.environ.get('EXTRACT_INTERVAL', 2 * 60)),
+    'extract_interval': int(os.environ.get('EXTRACT_INTERVAL', 15)),
+    'aggregate_interval': int(os.environ.get('AGGREGATE_INTERVAL', 2 * 60)),
     'external_db_config': {
         'db_host': os.environ.get('EXTERNAL_DB_HOST', '192.168.252.218'),
         'db_name': os.environ.get('EXTERNAL_DB_NAME', 'zabbix'),

@@ -46,7 +46,11 @@ async def on_startup() -> None:
 
     app_tasks['external_db_config'] = await create_aio_engine('external_db_config')
     # app_tasks['internal_db_config'] = await create_aio_engine('internal_db_config')
-    app_tasks['zabbix_etl'] = ZabbixETL(app_tasks['external_db_config'], interval=configuration['extract_interval'])
+    app_tasks['zabbix_etl'] = ZabbixETL(
+        app_tasks['external_db_config'],
+        extract_interval=configuration['extract_interval'],
+        aggregate_interval=configuration['aggregate_interval']
+    )
     await app_tasks['zabbix_etl'].start()
 
     logger.info('Service started successfully')
