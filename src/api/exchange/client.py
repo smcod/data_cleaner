@@ -12,7 +12,6 @@ DEFAULT_CHUNK_SIZE = 4096
 DEFAULT_TIMEOUT = 10
 DEFAULT_DELAY = 2
 
-
 Target = NamedTuple('Target', [
     ('ip_addr', str),
     ('port', int)
@@ -26,7 +25,8 @@ class Client(object):
             port: Union[int, str],
             timeout: int = DEFAULT_TIMEOUT,
             delay: int = DEFAULT_DELAY,
-            chunk_size: int = DEFAULT_CHUNK_SIZE
+            chunk_size: int = DEFAULT_CHUNK_SIZE,
+            db_client: Optional[Any] = None
     ):
 
         self._ip_addr = ip_addr
@@ -34,6 +34,8 @@ class Client(object):
         self._timeout = timeout
         self._delay = delay
         self.chunk_size = chunk_size
+
+        self._db_client = db_client
 
         self._task = None
 
@@ -56,7 +58,7 @@ class Client(object):
             logger.info('Client остановлен')
 
     def _create_message(self, data: Any, callback: str,
-                     target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
+                        target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
         message = dict()
         message['user_agent'] = USER_AGENT
         message['callback'] = callback
@@ -65,19 +67,20 @@ class Client(object):
         return message
 
     def send_message_without_response(self, data: Any, callback: str,
-                     target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
+                                      target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
         message = self._create_message(data, callback, target_ip=target_ip, target_port=target_port)
         self._messages_to_send.add((json.dumps(message), Target(*message['target'])))
 
     async def send_message_with_response(self, data: Any, callback: str,
-                     target_ip: Optional[str] = None, target_port: Optional[Union[str, int]] = None):
+                                         target_ip: Optional[str] = None,
+                                         target_port: Optional[Union[str, int]] = None):
         message = self._create_message(data, callback, target_ip=target_ip, target_port=target_port)
         return await self._send((json.dumps(message), Target(*message['target'])))
 
     @run_forever(failure_delay=5)
     async def _message_sender(self):
         if not self._messages_to_send:
-            logger.debug('Нет сообщений для отправки')
+            # logger.debug('Нет сообщений для отправки')
             await asyncio.sleep(self._delay)
             return
         message = self._messages_to_send.pop()

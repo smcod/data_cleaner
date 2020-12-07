@@ -9,6 +9,9 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
+      MONGO_INITDB_DATABASE: ${SRC_MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${SRC_MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${SRC_MONGO_INITDB_ROOT_PASSWORD}
       LOGGING_LEVEL: DEBUG
       TZ: Asia/Yekaterinburg
     ports:
@@ -17,6 +20,21 @@ services:
       - backend_nw
     volumes:
       - ${LOCAL_DIR}:/opt/data_cleaner
+
+  db:
+    image: mongo:latest
+    restart: always
+    container_name: "db"
+    environment:
+      MONGO_INITDB_DATABASE: ${SRC_MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${SRC_MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${SRC_MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./mongo-volume:/data/db
+    ports:
+      - "${SERVICES_BIND_IP:-0.0.0.0}:27017:27017"
+    networks:
+      - backend_nw
 
 networks:
   backend_nw:

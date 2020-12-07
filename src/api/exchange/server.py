@@ -24,13 +24,16 @@ class Server(object):
             timeout: int = DEFAULT_TIMEOUT,
             delay: int = DEFAULT_DELAY,
             chunk_size: int = DEFAULT_CHUNK_SIZE,
-            loop: Optional[AbstractEventLoop] = None
+            loop: Optional[AbstractEventLoop] = None,
+            db_client: Optional[Any] = None
     ):
         self._ip_addr = ip_addr
         self._port = int(port)
         self._timeout = timeout
         self._delay = delay
         self.chunk_size = chunk_size
+
+        self._db_client = db_client
 
         self._task = None
         self._server = None
@@ -119,7 +122,10 @@ class Server(object):
             dict_message = json.loads(message)
             handler = self._get_handler(dict_message)
 
-            response = await handler(dict_message['data'])
+            if self._db_client is not None:
+                response = await handler(dict_message['data'], self._db_client)
+            else:
+                response = await handler(dict_message['data'])
             code = "SUCCESS"
 
         except Exception as exc:

@@ -24,5 +24,12 @@ configuration = {
         'db_name': os.environ.get('INTERNAL_DB_NAME', 'preprocessed_data'),
         'db_user': os.environ.get('INTERNAL_DB_USER', 'root'),
         'db_password': os.environ.get('INTERNAL_DB_PASSWORD', '1234'),
-    }
+    },
+    'mongo_db': {
+        'db_user': os.environ.get('MONGO_INITDB_ROOT_USERNAME', default='admin'),
+        'db_password': os.environ.get('MONGO_INITDB_ROOT_PASSWORD', default='1234'),
+        'db_name': os.environ.get('MONGO_INITDB_DATABASE', default='preprocessed_data'),
+        'db_host': os.environ.get('MONGO_INITDB_HOST', default='db'),
+        'db_port': os.environ.get('MONGO_INITDB_PORT', default=27017)
+    },
 }
